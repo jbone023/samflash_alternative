@@ -57,80 +57,24 @@ MainWindow::~MainWindow() {
 
 void MainWindow::setup_ui() {
     setWindowTitle("SamFlash Alternative v1.0");
-    setMinimumSize(800, 600);
+    setMinimumSize(1200, 800);
     
-    central_widget_ = new QWidget(this);
-    setCentralWidget(central_widget_);
-    main_layout_ = new QVBoxLayout(central_widget_);
+    // Setup menu bar, toolbar, and status bar
+    setup_menu_bar();
+    setup_tool_bar();
+    setup_status_bar();
     
-    // Device selection section
-    device_layout_ = new QHBoxLayout();
-    device_combo_ = new QComboBox();
-    refresh_button_ = new QPushButton("Refresh");
-    connect_button_ = new QPushButton("Connect");
-    disconnect_button_ = new QPushButton("Disconnect");
+    // Setup central widget with splitter layout
+    setup_central_widget();
     
-    device_layout_->addWidget(new QLabel("Device:"));
-    device_layout_->addWidget(device_combo_);
-    device_layout_->addWidget(refresh_button_);
-    device_layout_->addWidget(connect_button_);
-    device_layout_->addWidget(disconnect_button_);
-    device_layout_->addStretch();
+    // Setup individual panes
+    setup_device_pane();
+    setup_firmware_pane();
+    setup_control_pane();
+    setup_progress_pane();
+    setup_log_pane();
     
-    main_layout_->addLayout(device_layout_);
-    
-    // Device info section
-    info_layout_ = new QGridLayout();
-    device_name_label_ = new QLabel("N/A");
-    device_type_label_ = new QLabel("N/A");
-    flash_size_label_ = new QLabel("N/A");
-    connection_status_label_ = new QLabel("Disconnected");
-    
-    info_layout_->addWidget(new QLabel("Device Name:"), 0, 0);
-    info_layout_->addWidget(device_name_label_, 0, 1);
-    info_layout_->addWidget(new QLabel("Type:"), 1, 0);
-    info_layout_->addWidget(device_type_label_, 1, 1);
-    info_layout_->addWidget(new QLabel("Flash Size:"), 2, 0);
-    info_layout_->addWidget(flash_size_label_, 2, 1);
-    info_layout_->addWidget(new QLabel("Status:"), 3, 0);
-    info_layout_->addWidget(connection_status_label_, 3, 1);
-    
-    main_layout_->addLayout(info_layout_);
-    
-    // Firmware operations section
-    firmware_layout_ = new QHBoxLayout();
-    firmware_file_label_ = new QLabel("No file selected");
-    browse_button_ = new QPushButton("Browse...");
-    flash_button_ = new QPushButton("Flash");
-    verify_button_ = new QPushButton("Verify");
-    erase_button_ = new QPushButton("Erase");
-    
-    firmware_layout_->addWidget(new QLabel("Firmware:"));
-    firmware_layout_->addWidget(firmware_file_label_);
-    firmware_layout_->addWidget(browse_button_);
-    firmware_layout_->addWidget(flash_button_);
-    firmware_layout_->addWidget(verify_button_);
-    firmware_layout_->addWidget(erase_button_);
-    
-    main_layout_->addLayout(firmware_layout_);
-    
-    // Progress section
-    progress_bar_ = new QProgressBar();
-    progress_label_ = new QLabel("Ready");
-    
-    main_layout_->addWidget(progress_bar_);
-    main_layout_->addWidget(progress_label_);
-    
-    // Log section
-    main_layout_->addWidget(new QLabel("Log:"));
-    log_text_ = new QTextEdit();
-    log_text_->setMaximumHeight(200);
-    log_text_->setReadOnly(true);
-    main_layout_->addWidget(log_text_);
-    
-    // Status bar
-    statusBar()->showMessage("Ready");
-    
+    // Initial UI state
     update_ui_state();
 }
 

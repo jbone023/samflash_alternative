@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 project(SamFlashAlternative VERSION 1.0.0 LANGUAGES CXX)
 
+# Set policy for older CMake compatibility
+if(POLICY CMP0127)
+    cmake_policy(SET CMP0127 NEW)
+endif()
+
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -1,2 +1,0 @@
-C:\Users\tiaas\scoop\apps\gcc\current\bin\ar.exe qc libSamFlashCore.a CMakeFiles/SamFlashCore.dir/src/Core/flash_manager.cpp.obj CMakeFiles/SamFlashCore.dir/src/Core/device_interface_factory.cpp.obj CMakeFiles/SamFlashCore.dir/src/Core/serial_transport.cpp.obj CMakeFiles/SamFlashCore.dir/src/Core/usb_serial_interface.cpp.obj CMakeFiles/SamFlashCore.dir/src/Core/serial_transport_stub.cpp.obj
-C:\Users\tiaas\scoop\apps\gcc\current\bin\ranlib.exe libSamFlashCore.a

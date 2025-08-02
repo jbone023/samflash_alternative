@@ -48,11 +48,19 @@ public:
     
     // Main device detection methods
     std::vector<DeviceInfo> scan_for_samsung_devices();
+    std::vector<DeviceInfo> scan_for_locked_samsung_devices();
     bool identify_samsung_device(const SerialPortInfo& port_info, DeviceInfo& device_info);
+    bool identify_locked_samsung_device(uint16_t vid, uint16_t pid, const std::string& port_name, DeviceInfo& device_info);
     
     // USB VID/PID scanning
     bool is_samsung_vid_pid(uint16_t vid, uint16_t pid);
+    bool is_samsung_download_mode(uint16_t vid, uint16_t pid);
+    bool is_samsung_odin_mode(uint16_t vid, uint16_t pid);
     SamsungSoCInfo get_soc_info(uint16_t vid, uint16_t pid);
+    
+    // Windows-specific USB device enumeration for locked devices
+    std::vector<std::pair<uint16_t, uint16_t>> enumerate_usb_devices();
+    std::string get_device_port_from_vid_pid(uint16_t vid, uint16_t pid);
     
     // Serial descriptor parsing
     bool parse_device_descriptor(const std::string& port_name, SamsungDeviceIdentifier& identifier);

@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\SamFlashCLI.dir/objects.a
-C:\Users\tiaas\scoop\apps\gcc\current\bin\ar.exe qc CMakeFiles\SamFlashCLI.dir/objects.a @CMakeFiles\SamFlashCLI.dir\objects1.rsp
-C:\Users\tiaas\scoop\apps\gcc\current\bin\g++.exe  -Wall -Wextra -Wpedantic -Wl,--whole-archive CMakeFiles\SamFlashCLI.dir/objects.a -Wl,--no-whole-archive -o SamFlashCLI.exe -Wl,--out-implib,libSamFlashCLI.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\SamFlashCLI.dir\linkLibs.rsp

@@ -104,6 +104,11 @@ coverage/
 *.backup
 *~
 
+# Node.js (if TypeScript tools are used)
+node_modules/
+package-lock.json
+*.tsbuildinfo
+
 # Custom exclusions for this project
 device_images/
 firmware_dumps/

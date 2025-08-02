@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 #include "samsung_flasher.h"
+#include "generic_strategy.h"
+#include "samsung_strategy.h"
 
 namespace SamFlash {
 
@@ -38,6 +40,7 @@ bool FlashManager::connect_device(const std::string& device_id) {
             device_interface_ = std::make_unique<SamsungFlasher>();
             device_interface_->connect(device_id);
         }
+        select_strategy();
         current_status_ = FlashStatus::CONNECTED;
         return true;
     }
@@ -83,32 +86,27 @@ bool FlashManager::load_firmware_file(const std::string& file_path) {
 }
 
 bool FlashManager::flash_firmware() {
-    current_status_ = FlashStatus::FLASHING;
-
-    for (size_t i = 0; i < firmware_data_.size(); i += 256) {
-        std::vector<uint8_t> page(firmware_data_.begin() + i,
-                                  firmware_data_.begin() + std::min(firmware_data_.size(), i + 256));
-        if (!device_interface_->write_page(i, page)) {
-            current_status_ = FlashStatus::ERROR;
-            set_error("Flash error at page: " + std::to_string(i / 256));
-            return false;
-        }
-        update_progress({i, static_cast<uint32_t>(firmware_data_.size()), 100.0 * static_cast<double>(i) / firmware_data_.size(), "Flashing", current_status_});
+    if (!flash_strategy_) {
+        set_error("No flashing strategy selected");
+        return false;
     }
-
-    current_status_ = FlashStatus::COMPLETE;
-    return true;
+    return flash_strategy_->write_firmware(firmware_data_);
 }
 
 bool FlashManager::verify_firmware() {
-    current_status_ = FlashStatus::VERIFYING;
-    bool result = device_interface_->verify_flash(firmware_data_);
-    current_status_ = result ? FlashStatus::COMPLETE : FlashStatus::ERROR;
-    return result;
+    if (!flash_strategy_) {
+        set_error("No flashing strategy selected");
+        return false;
+    }
+    return flash_strategy_->verify_firmware(firmware_data_);
 }
 
 bool FlashManager::erase_device() {
-    return device_interface_->erase_chip();
+    if (!flash_strategy_) {
+        set_error("No flashing strategy selected");
+        return false;
+    }
+    return flash_strategy_->erase_device();
 }
 
 void FlashManager::set_progress_callback(std::function<void(const FlashProgress&)> callback) {
@@ -152,6 +150,39 @@ void FlashManager::update_progress(const FlashProgress& progress) {
 
 bool FlashManager::validate_firmware_data() {
     return !firmware_data_.empty();
+}
+
+void FlashManager::select_strategy() {
+    if (!device_interface_) {
+        return;
+    }
+    
+    DeviceInfo device_info = device_interface_->get_device_info();
+    std::cout << "Selecting strategy for device: " << device_info.manufacturer << std::endl;
+    
+    if (device_info.manufacturer == "Samsung") {
+        flash_strategy_ = std::make_unique<SamsungStrategy>();
+        std::cout << "Selected SamsungStrategy" << std::endl;
+    } else {
+        flash_strategy_ = std::make_unique<GenericStrategy>();
+        std::cout << "Selected GenericStrategy" << std::endl;
+    }
+    
+    // Initialize the strategy with the device interface and config
+    flash_strategy_->initialize(device_interface_, config_);
+    
+    // Set up progress callback bridge
+    flash_strategy_->set_progress_callback([this](const EnhancedFlashProgress& enhanced_progress) {
+        // Convert EnhancedFlashProgress to FlashProgress for compatibility
+        FlashProgress legacy_progress;
+        legacy_progress.bytes_written = enhanced_progress.bytes_written;
+        legacy_progress.total_bytes = enhanced_progress.total_bytes;
+        legacy_progress.percentage = enhanced_progress.percentage;
+        legacy_progress.current_operation = enhanced_progress.current_operation;
+        legacy_progress.status = enhanced_progress.status;
+        
+        update_progress(legacy_progress);
+    });
 }
 
 } // namespace SamFlash

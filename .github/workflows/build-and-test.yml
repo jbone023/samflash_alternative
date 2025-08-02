@@ -1,0 +1,117 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        build_type: [Release]
+        include:
+          - os: ubuntu-latest
+            artifact_name: SamFlash-Linux
+            cmake_args: "-DCMAKE_BUILD_TYPE=Release"
+          - os: macos-latest
+            artifact_name: SamFlash-macOS
+            cmake_args: "-DCMAKE_BUILD_TYPE=Release"
+          - os: windows-latest
+            artifact_name: SamFlash-Windows
+            cmake_args: "-DCMAKE_BUILD_TYPE=Release"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: '3.20.0'
+
+    - name: Install Linux dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          ninja-build \
+          libserialport-dev \
+          pkg-config \
+          qt6-base-dev \
+          qt6-tools-dev \
+          qt6-tools-dev-tools \
+          libgtest-dev \
+          libgmock-dev
+
+    - name: Install macOS dependencies
+      if: runner.os == 'macOS'
+      run: |
+        brew install \
+          cmake \
+          ninja \
+          libserialport \
+          qt6 \
+          googletest
+
+    - name: Install Windows dependencies (vcpkg)
+      if: runner.os == 'Windows'
+      run: |
+        vcpkg install libserialport:x64-windows qt6-base:x64-windows gtest:x64-windows
+        echo "CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -S . ${{ matrix.cmake_args }} \
+          -DCMAKE_TOOLCHAIN_FILE=${{ env.CMAKE_TOOLCHAIN_FILE || '' }} \
+          -G Ninja
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    - name: Run Tests
+      run: |
+        cd build
+        ctest --output-on-failure -C ${{ matrix.build_type }}
+
+    - name: Package artifacts (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        mkdir -p artifacts
+        cp build/SamFlashCLI artifacts/
+        if [ -f build/SamFlashGUI ]; then cp build/SamFlashGUI artifacts/; fi
+        tar -czf ${{ matrix.artifact_name }}.tar.gz -C artifacts .
+
+    - name: Package artifacts (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        mkdir -p artifacts
+        cp build/SamFlashCLI artifacts/
+        if [ -f build/SamFlashGUI ]; then cp build/SamFlashGUI artifacts/; fi
+        tar -czf ${{ matrix.artifact_name }}.tar.gz -C artifacts .
+
+    - name: Package artifacts (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        New-Item -ItemType Directory -Force -Path artifacts
+        Copy-Item build/Release/SamFlashCLI.exe artifacts/ -ErrorAction SilentlyContinue
+        Copy-Item build/Release/SamFlashGUI.exe artifacts/ -ErrorAction SilentlyContinue
+        Compress-Archive -Path artifacts/* -DestinationPath ${{ matrix.artifact_name }}.zip
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: |
+          ${{ matrix.artifact_name }}.tar.gz
+          ${{ matrix.artifact_name }}.zip
+        if-no-files-found: ignore
+        retention-days: 30
+

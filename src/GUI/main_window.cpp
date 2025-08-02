@@ -1,29 +1,59 @@
 #include "main_window.h"
 #include <QtCore/QDateTime>
+#include <QtCore/QStandardPaths>
+#include <QtCore/QDir>
+#include <QtCore/QFileInfo>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QListWidgetItem>
+#include <QtGui/QCloseEvent>
+#include <QtGui/QShowEvent>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), flash_manager_(std::make_unique<SamFlash::FlashManager>()) {
+    : QMainWindow(parent)
+    , flash_manager_(std::make_unique<SamFlash::FlashManager>())
+    , flash_thread_(nullptr)
+    , settings_(new QSettings("SamFlash", "Alternative", this))
+    , is_dark_theme_(false)
+    , flash_operation_running_(false) {
+    
+    // Load settings first
+    load_settings();
+    
+    // Setup UI components
     setup_ui();
     setup_connections();
     
-    // Setup progress callback
-    flash_manager_->set_progress_callback([this](const SamFlash::FlashProgress& progress) {
-        // Use Qt's queued connection for thread safety
-        QMetaObject::invokeMethod(this, [this, progress]() {
-            on_progress_update(progress);
-        }, Qt::QueuedConnection);
-    });
+    // Bridge FlashManager signals for MVC separation
+    bridge_flash_manager_signals();
     
-    // Setup UI update timer
+    // Setup timers
     ui_update_timer_ = new QTimer(this);
     connect(ui_update_timer_, &QTimer::timeout, this, &MainWindow::update_ui_state);
     ui_update_timer_->start(100); // Update every 100ms
     
+    device_scan_timer_ = new QTimer(this);
+    connect(device_scan_timer_, &QTimer::timeout, this, &MainWindow::refresh_devices);
+    device_scan_timer_->start(5000); // Scan every 5 seconds
+    
+    // Initial setup
     refresh_devices();
+    apply_theme(is_dark_theme_);
+    
+    log_message("SamFlash Alternative started", "INFO");
 }
 
-MainWindow::~MainWindow() = default;
+MainWindow::~MainWindow() {
+    save_settings();
+    if (flash_thread_ && flash_thread_->isRunning()) {
+        flash_thread_->quit();
+        flash_thread_->wait(3000);
+    }
+}
 
 void MainWindow::setup_ui() {
     setWindowTitle("SamFlash Alternative v1.0");

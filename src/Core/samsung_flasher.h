@@ -84,8 +84,8 @@ public:
         
         // Parse PIT if not done already
         if (pit_entries_.empty()) {
-            parse_pit();
-            map_partitions();
+            parse_pit_internal();
+            map_partitions_internal();
         }
         
         // Write data using Samsung protocol
@@ -124,6 +124,19 @@ public:
     void clear_error() override {
         last_error_.clear();
     }
+    
+    // Samsung-specific public methods
+    const std::vector<PITEntry>& get_pit_entries() const {
+        return pit_entries_;
+    }
+    
+    void parse_pit() {
+        parse_pit_internal();
+    }
+    
+    void map_partitions() {
+        map_partitions_internal();
+    }
 
 private:
     // Samsung protocol implementation
@@ -141,7 +154,7 @@ private:
         }
     }
     
-    void parse_pit() {
+    void parse_pit_internal() {
         std::cout << "Samsung: Parsing PIT (Partition Information Table)..." << std::endl;
         
         // Send PIT file request
@@ -160,7 +173,7 @@ private:
         std::cout << "Samsung: Found " << pit_entries_.size() << " partitions" << std::endl;
     }
     
-    void map_partitions() {
+    void map_partitions_internal() {
         std::cout << "Samsung: Mapping partitions..." << std::endl;
         
         for (const auto& entry : pit_entries_) {

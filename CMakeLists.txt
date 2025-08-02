@@ -15,6 +15,23 @@ endif()
 # Find required packages
 find_package(Threads REQUIRED)
 
+# CLI11 for argument parsing
+include(FetchContent)
+FetchContent_Declare(
+    cli11
+    GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+    GIT_TAG        v2.3.2
+)
+FetchContent_MakeAvailable(cli11)
+
+# yaml-cpp for YAML job files
+FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG        yaml-cpp-0.7.0
+)
+FetchContent_MakeAvailable(yaml-cpp)
+
 # Try to find libserialport
 set(LIBSERIALPORT_FOUND FALSE)
 if(UNIX)
@@ -53,6 +70,12 @@ set(CORE_SOURCES
     src/Core/serial_transport.cpp
     src/Core/usb_serial_interface.h
     src/Core/usb_serial_interface.cpp
+    src/Core/samsung_device_detector.h
+    src/Core/samsung_device_detector.cpp
+    src/Core/samsung_flasher.h
+    src/Core/samsung_strategy.h
+    src/Core/generic_strategy.h
+    src/Core/iflash_strategy.h
 )
 
 # Add stub file for reference (included conditionally in serial_transport.cpp)
@@ -85,7 +108,7 @@ endif()
 
 # CLI Tool
 add_executable(SamFlashCLI src/Scripts/main.cpp)
-target_link_libraries(SamFlashCLI SamFlashCore)
+target_link_libraries(SamFlashCLI SamFlashCore CLI11::CLI11 yaml-cpp)
 
 # Tests
 enable_testing()

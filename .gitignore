@@ -1,0 +1,113 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build directories
+build/
+Build/
+BUILD/
+cmake-build-*/
+.vs/
+.vscode/settings.json
+*.vcxproj.user
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# IDE files
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and crash reports
+*.log
+*.dmp
+crash_*.txt
+
+# Sensitive data (CRITICAL - never commit)
+*.key
+*.pem
+*.p12
+*.keystore
+passwords.txt
+credentials.*
+secrets.*
+device_data/
+recovered_data/
+*.forensic
+*.evidence
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Package managers
+conan.lock
+vcpkg_installed/
+
+# Documentation build
+docs/_build/
+docs/html/
+docs/latex/
+
+# Test outputs
+test_results/
+coverage/
+*.gcda
+*.gcno
+*.gcov
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Custom exclusions for this project
+device_images/
+firmware_dumps/
+extracted_data/
+case_files/
+legal_docs/
+client_data/

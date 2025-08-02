@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include "samsung_flasher.h"
 
 namespace SamFlash {
 
@@ -32,6 +33,11 @@ std::vector<DeviceInfo> FlashManager::scan_devices() {
 bool FlashManager::connect_device(const std::string& device_id) {
     std::lock_guard<std::mutex> lock(status_mutex_);
     if (device_interface_->connect(device_id)) {
+        // Check if it's a Samsung device
+        if(device_interface_->get_device_signature() == "samsung_signature") {
+            device_interface_ = std::make_unique<SamsungFlasher>();
+            device_interface_->connect(device_id);
+        }
         current_status_ = FlashStatus::CONNECTED;
         return true;
     }

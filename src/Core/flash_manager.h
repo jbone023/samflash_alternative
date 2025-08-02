@@ -8,6 +8,7 @@
 #include <atomic>
 #include <thread>
 #include <mutex>
+#include "iflash_strategy.h"
 
 namespace SamFlash {
 
@@ -41,7 +42,8 @@ public:
     bool erase_device();
     
     // Progress and status
-    void set_progress_callback(std::function<void(const FlashProgress&)> callback);
+void set_progress_callback(std::function<void(const FlashProgress&)> callback);
+    void select_strategy();
     FlashStatus get_status() const;
     double get_progress_percentage() const;
     
@@ -58,7 +60,8 @@ private:
     void update_progress(const FlashProgress& progress);
     bool validate_firmware_data();
     
-    std::unique_ptr<IDeviceInterface> device_interface_;
+std::unique_ptr<IDeviceInterface> device_interface_;
+    std::unique_ptr<IFlashStrategy> flash_strategy_;
     std::vector<uint8_t> firmware_data_;
     FlashConfig config_;
     
